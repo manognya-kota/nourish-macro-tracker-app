@@ -13,32 +13,22 @@ const PHOTO_SYSTEM = `You are a food recognition and nutrition expert. Analyze t
 {"name":"Identified Food","calories":000,"protein":0,"carbs":0,"fat":0,"serving":"estimated serving size"}
 Be specific. Estimate for the visible portion.`;
 
-async function callClaude(prompt, system, imageData = null) {
-  const content = imageData
-    ? [
-        {
-          type: "image",
-          source: {
-            type: "base64",
-            media_type: imageData.type,
-            data: imageData.data,
-          },
-        },
-        { type: "text", text: prompt },
-      ]
-    : prompt;
-  const res = await fetch(ANTHROPIC_API, {
+async function callClaude(prompt, system) {
+  // Keeping the name so you don't have to rename it everywhere
+  const res = await fetch(SHEETS_URL, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "text/plain" },
     body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 1000,
-      system,
-      messages: [{ role: "user", content }],
+      action: "proxyAI",
+      prompt: prompt,
+      system: system,
     }),
   });
-  const data = await res.json();
-  return data.content?.[0]?.text || "";
+
+  const rawText = await res.text();
+  // Sometimes Gemini adds ```json backticks, we strip those just in case
+  const cleanJson = rawText.replace(/```json|```/g, "").trim();
+  return cleanJson;
 }
 
 async function sheetsGet() {
