@@ -17,12 +17,10 @@ async function callClaude(prompt, system) {
   // Keeping the name so you don't have to rename it everywhere
   const res = await fetch(SHEETS_URL, {
     method: "POST",
+    mode: "cors", // Add this line
+    redirect: "follow", // Add this line
     headers: { "Content-Type": "text/plain" },
-    body: JSON.stringify({
-      action: "proxyAI",
-      prompt: prompt,
-      system: system,
-    }),
+    body: JSON.stringify({ action: "proxyAI", prompt, system }),
   });
 
   const rawText = await res.text();
