@@ -14,19 +14,23 @@ const PHOTO_SYSTEM = `You are a food recognition and nutrition expert. Analyze t
 Be specific. Estimate for the visible portion.`;
 
 async function callClaude(prompt, system, imageData = null) {
-  // ... keep your content logic ...
   const res = await fetch(SHEETS_URL, {
-    // Pointing to SHEETS_URL as discussed
     method: "POST",
-    headers: { "Content-Type": "text/plain;charset=utf-8" }, // Fix: Use text/plain
+    mode: "cors", // Tell the browser this is cross-site
+    redirect: "follow", // Mandatory for Google Scripts
+    headers: {
+      "Content-Type": "text/plain;charset=utf-8", // This bypasses the CORS 'pre-flight' block
+    },
     body: JSON.stringify({
       action: "proxyAI",
       prompt: prompt,
       system: system,
     }),
   });
-  const data = await res.json();
-  return data.content?.[0]?.text || "";
+
+  const rawText = await res.text();
+  const cleanJson = rawText.replace(/```json|```/g, "").trim();
+  return cleanJson;
 }
 
 async function sheetsGet() {
@@ -37,9 +41,12 @@ async function sheetsGet() {
 async function sheetsPost(payload) {
   await fetch(SHEETS_URL, {
     method: "POST",
-    headers: { "Content-Type": "text/plain;charset=utf-8" }, // Fix: Consistency
+    mode: "cors",
+    redirect: "follow",
+    headers: {
+      "Content-Type": "text/plain;charset=utf-8",
+    },
     body: JSON.stringify(payload),
-    redirect: "follow", // Ensure redirects are followed
   });
 }
 
