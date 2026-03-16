@@ -13,32 +13,20 @@ const PHOTO_SYSTEM = `You are a food recognition and nutrition expert. Analyze t
 {"name":"Identified Food","calories":000,"protein":0,"carbs":0,"fat":0,"serving":"estimated serving size"}
 Be specific. Estimate for the visible portion.`;
 
-async function callClaude(prompt, system) {
-  try {
-    const res = await fetch(SHEETS_URL, {
-      method: "POST",
-      mode: "cors", // <--- Change 1
-      redirect: "follow", // <--- Change 2
-      headers: {
-        "Content-Type": "text/plain;charset=utf-8", // <--- Change 3
-      },
-      body: JSON.stringify({
-        action: "proxyAI",
-        prompt: prompt,
-        system: system,
-      }),
-    });
-
-    if (!res.ok) throw new Error("Network response was not ok");
-
-    const rawText = await res.text();
-    // Strip any markdown backticks if Gemini includes them
-    const cleanJson = rawText.replace(/```json|```/g, "").trim();
-    return cleanJson;
-  } catch (err) {
-    console.error("AI Search Error:", err);
-    return null;
-  }
+async function callClaude(prompt, system, imageData = null) {
+  // ... keep your content logic ...
+  const res = await fetch(SHEETS_URL, {
+    // Pointing to SHEETS_URL as discussed
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" }, // Fix: Use text/plain
+    body: JSON.stringify({
+      action: "proxyAI",
+      prompt: prompt,
+      system: system,
+    }),
+  });
+  const data = await res.json();
+  return data.content?.[0]?.text || "";
 }
 
 async function sheetsGet() {
@@ -49,8 +37,9 @@ async function sheetsGet() {
 async function sheetsPost(payload) {
   await fetch(SHEETS_URL, {
     method: "POST",
-    headers: { "Content-Type": "text/plain" },
+    headers: { "Content-Type": "text/plain;charset=utf-8" }, // Fix: Consistency
     body: JSON.stringify(payload),
+    redirect: "follow", // Ensure redirects are followed
   });
 }
 
